@@ -1,0 +1,71 @@
+
+    getgenv().Key = Enum.KeyCode.T
+getgenv().Prediction = 0.1332241241231
+    getgenv().Partz = "HumanoidRootPart" -- LowerTorso, HumanoidRootPart,Head,UpperTorso
+
+    
+        local Locking = false
+    local Draw = Drawing.new
+local Circle = Drawing.new("Circle")
+Circle.Visible = true
+Circle.Color = Color3.fromRGB(0, 135, 252)
+Circle.Thickness = 25
+Circle.Size = Vector2.new(50,50)
+Circle.Filled = false
+
+    game:GetService("UserInputService").InputBegan:Connect(function(keygo,ok)
+           if (not ok) then
+           if (keygo.KeyCode == getgenv().Key) then
+               Locking = not Locking
+               if Locking then
+               Plr =  getClosestPlayerToCursor()
+elseif not Locking then
+        
+
+         
+end
+end
+end
+end)
+    function getClosestPlayerToCursor()
+        local closestPlayer
+        local shortestDistance = math.huge
+
+        for i, v in pairs(game.Players:GetPlayers()) do
+            if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health ~= 0 and v.Character:FindFirstChild("LowerTorso") then
+                local pos =  game:GetService"Workspace".CurrentCamera:WorldToViewportPoint(v.Character.PrimaryPart.Position)
+                local magnitude = (Vector2.new(pos.X, pos.Y) - Vector2.new( game.Players.LocalPlayer:GetMouse().X,  game.Players.LocalPlayer:GetMouse().Y)).magnitude
+                if magnitude < shortestDistance then
+                    closestPlayer = v
+                    shortestDistance = magnitude
+                end
+            end
+        end
+        return closestPlayer
+    end
+
+    local rawmetatable = getrawmetatable(game)
+    local old = rawmetatable.__namecall
+    setreadonly(rawmetatable, false)
+    rawmetatable.__namecall = newcclosure(function(...)
+        local args = {...}
+        if Locking and getnamecallmethod() == "FireServer" and args[2] == "GetMousePos" then
+            args[3] = Plr.Character[getgenv().Partz].Position+(Plr.Character[getgenv().Partz].Velocity*Prediction)
+            return old(unpack(args))
+        end
+        return old(...)
+    end)
+    
+    
+game.RunService.Stepped:Connect(function()
+    if Plr ~= nil and Locking then
+         local Vector, OnScreen = workspace.CurrentCamera:worldToViewportPoint(Plr.Character[getgenv().Partz].Position+(Plr.Character[getgenv().Partz].Velocity*Prediction))
+         if OnScreen then
+        Circle.Visible = true
+        Circle.Position = Vector2.new(Vector.X,Vector.Y)
+        end
+        elseif not Locking then
+            Circle.Visible = false
+        end
+        
+    end)
